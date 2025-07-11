@@ -2,3 +2,207 @@
 Complete Source Files Overview
 
 This section provides detailed source code snippets for core components of the NBC Franchise Dashboard project, including the main Dash app logic, modular layout file, Power BI mention, and custom stylesheet.
+# 📂 Complete Source Files Overview
+
+This section provides detailed source code snippets for core components of the NBC Franchise Dashboard project, including the main Dash app logic, modular layout file, Power BI mention, and custom stylesheet.
+
+---
+
+## 📜 dashboard/app.py
+
+This is the main entry point for the NBC Dashboard built using Dash and Plotly. It initializes the app, loads the dataset, sets up layout and callbacks, and controls the interaction between inputs and chart outputs. This file handles dynamic updates for KPIs such as sales, inventory, footfall, and loyalty metrics across selected cities and products.
+
+```python
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+from dash.dependencies import Input, Output
+import pandas as pd
+import plotly.express as px
+from components import layout
+
+# Load dataset
+df = pd.read_csv('data/NBC_KPI_Data.csv')
+df['Date'] = pd.to_datetime(df['Date'])
+
+# App initialization
+app = dash.Dash(__name__, title='NBC Franchise Dashboard')
+server = app.server
+
+# Layout
+app.layout = layout(df)
+
+# Callbacks
+@app.callback(
+    [
+        Output('sales-line', 'figure'),
+        Output('inventory-bar', 'figure'),
+        Output('footfall-trend', 'figure'),
+        Output('service-efficiency', 'figure'),
+        Output('return-rate', 'figure'),
+        Output('loyalty-pie', 'figure'),
+        Output('branch-table', 'data')
+    ],
+    [
+        Input('city-dropdown', 'value'),
+        Input('product-dropdown', 'value'),
+        Input('loyalty-dropdown', 'value')
+    ]
+)
+def update_dashboard(city, product, loyalty):
+    filtered_df = df[(df['City'] == city) &
+                     (df['Product'] == product) &
+                     (df['LoyaltySegment'] == loyalty)]
+
+    sales_fig = px.line(
+        filtered_df.groupby('Date')['Sales'].sum().reset_index(),
+        x='Date', y='Sales', title=f"📈 Sales Trend in {city} for {product}"
+    )
+
+    inventory_fig = px.bar(
+        filtered_df.groupby('Branch')['InventoryLevel (%)'].mean().reset_index(),
+        x='Branch', y='InventoryLevel (%)', color='InventoryLevel (%)',
+        color_continuous_scale='viridis', title=f"📦 Inventory in {city}"
+    )
+
+    footfall_fig = px.area(
+        filtered_df.groupby('Date')['CustomerFootfall'].sum().reset_index(),
+        x='Date', y='CustomerFootfall', title="🚶 Customer Footfall Over Time"
+    )
+
+    service_fig = px.box(
+        filtered_df, x='Branch', y='AvgServiceTime',
+        title="⏱️ Service Time per Branch"
+    )
+
+    return_fig = px.histogram(
+        filtered_df, x='ReturnRate', nbins=20,
+        title="🔁 Return Rate Distribution"
+    )
+
+    loyalty_fig = px.pie(
+        filtered_df.groupby('LoyaltySegment').size().reset_index(name='Count'),
+        names='LoyaltySegment', values='Count', title="🎯 Loyalty Segments"
+    )
+
+    table_data = filtered_df.to_dict('records')
+    return sales_fig, inventory_fig, footfall_fig, service_fig, return_fig, loyalty_fig, table_data
+
+if __name__ == '__main__':
+    app.run_server(debug=True)
+```
+
+---
+
+## 📜 dashboard/components.py
+
+This file defines the modular layout for the dashboard UI. It constructs dropdown menus for user selections and sets up all visual components like bar graphs, pie charts, and data tables. It's designed for reusability and easy scalability to include additional filters or charts in the future.
+
+```python
+import dash_core_components as dcc
+import dash_html_components as html
+import dash_table
+import pandas as pd
+
+
+def layout(df):
+    cities = sorted(df['City'].unique())
+    products = sorted(df['Product'].unique())
+    loyalty_segments = sorted(df['LoyaltySegment'].unique())
+
+    return html.Div([
+        html.H1("Nothing Before Coffee - Franchise KPI Dashboard", style={'textAlign': 'center'}),
+
+        html.Div([
+            html.Div([
+                html.Label("Select City:"),
+                dcc.Dropdown(
+                    id='city-dropdown',
+                    options=[{'label': c, 'value': c} for c in cities],
+                    value=cities[0], clearable=False
+                )
+            ], style={'width': '30%', 'display': 'inline-block'}),
+
+            html.Div([
+                html.Label("Select Product:"),
+                dcc.Dropdown(
+                    id='product-dropdown',
+                    options=[{'label': p, 'value': p} for p in products],
+                    value=products[0], clearable=False
+                )
+            ], style={'width': '30%', 'display': 'inline-block'}),
+
+            html.Div([
+                html.Label("Select Loyalty Segment:"),
+                dcc.Dropdown(
+                    id='loyalty-dropdown',
+                    options=[{'label': l, 'value': l} for l in loyalty_segments],
+                    value=loyalty_segments[0], clearable=False
+                )
+            ], style={'width': '30%', 'display': 'inline-block'})
+        ], style={'padding': '20px'}),
+
+        html.Div([
+            dcc.Graph(id='sales-line'),
+            dcc.Graph(id='inventory-bar'),
+            dcc.Graph(id='footfall-trend'),
+            dcc.Graph(id='service-efficiency'),
+            dcc.Graph(id='return-rate'),
+            dcc.Graph(id='loyalty-pie')
+        ]),
+
+        html.H3("🔍 Branch Performance Table"),
+        dash_table.DataTable(
+            id='branch-table',
+            columns=[{'name': i, 'id': i} for i in df.columns],
+            page_size=10, style_table={'overflowX': 'scroll'}
+        )
+    ])
+```
+
+---
+
+## 🎨 assets/custom.css
+
+This stylesheet controls the visual branding and color scheme of the dashboard interface. The colors match NBC's theme (coffee brown and beige), and enhance UX through improved dropdown contrast and customized graph background. This CSS ensures the dashboard has a polished and professional look suitable for corporate and client presentations.
+
+```css
+body {
+    background-color: #fcfcfc;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+h1 {
+    color: #402218;
+    text-align: center;
+}
+
+.dash-graph .js-plotly-plot .main-svg {
+    background-color: #fffbe6;
+}
+
+.Select-control {
+    border-color: #a67955 !important;
+    box-shadow: none;
+}
+
+.Select-menu-outer {
+    border-color: #a67955 !important;
+}
+```
+
+---
+
+## 📁 visualizations/powerbi\_dashboard.pbix
+
+This Power BI file replicates the dashboard experience using Microsoft's enterprise BI tool. It includes slicers, filters, and visuals to help stakeholders who prefer Power BI for reporting. While not hosted in GitHub due to size constraints, it’s referenced in the docs and brochure and can be shared on request.
+
+* Contains the same KPI visuals built in Microsoft Power BI
+* Filters for city, branch, and product
+* Upload to Power BI service for cloud access
+
+**File not included in repo by default due to binary size limits.** Place your `.pbix` file inside this directory for sharing or link externally via SharePoint/Drive.
+
+---
+
+This structure ensures that all project files are well-organized and understandable for academic, professional, or GitHub presentation use.
