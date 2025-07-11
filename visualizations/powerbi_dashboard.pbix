@@ -1,0 +1,11 @@
+📁 visualizations/powerbi_dashboard.pbix
+
+This Power BI file replicates the dashboard experience using Microsoft's enterprise BI tool. It includes slicers, filters, and visuals to help stakeholders who prefer Power BI for reporting. While not hosted in GitHub due to size constraints, it’s referenced in the docs and brochure and can be shared on request.
+
+Contains the same KPI visuals built in Microsoft Power BI
+
+Filters for city, branch, and product
+
+Upload to Power BI service for cloud access
+
+File not included in repo by default due to binary size limits. Place your .pbix file inside this directory for sharing or link externally via SharePoint/Drive.
