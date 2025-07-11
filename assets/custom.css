@@ -1,0 +1,23 @@
+This stylesheet controls the visual branding and color scheme of the dashboard interface. The colors match NBC's theme (coffee brown and beige), and enhance UX through improved dropdown contrast and customized graph background. This CSS ensures the dashboard has a polished and professional look suitable for corporate and client presentations.
+body {
+    background-color: #fcfcfc;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+h1 {
+    color: #402218;
+    text-align: center;
+}
+
+.dash-graph .js-plotly-plot .main-svg {
+    background-color: #fffbe6;
+}
+
+.Select-control {
+    border-color: #a67955 !important;
+    box-shadow: none;
+}
+
+.Select-menu-outer {
+    border-color: #a67955 !important;
+}
