@@ -1,5 +1,5 @@
 This is the main entry point for the NBC Dashboard built using Dash and Plotly. It initializes the app, loads the dataset, sets up layout and callbacks, and controls the interaction between inputs and chart outputs. This file handles dynamic updates for KPIs such as sales, inventory, footfall, and loyalty metrics across selected cities and products.
-'''
+
   import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -77,4 +77,3 @@ def update_dashboard(city, product, loyalty):
 
 if __name__ == '__main__':
     app.run_server(debug=True)
-  '''
